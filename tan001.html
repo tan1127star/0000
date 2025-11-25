@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>畢氏定理練習</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .pulse-success {
+            animation: pulseSuccess 0.5s ease-in-out;
+        }
+        @keyframes pulseSuccess {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Square root styling */
+        .sqrt-wrapper {
+            display: inline-flex;
+            align-items: stretch;
+            position: relative;
+            padding-left: 1.8em;
+        }
+
+        .sqrt-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-top: 3px solid;
+            border-color: inherit;
+            padding: 0.5em 0.5em 0.3em 0.2em;
+            position: relative;
+            color: inherit;
+        }
+
+        .sqrt-symbol {
+            position: absolute;
+            left: 0;
+            top: -3px;
+            bottom: 0;
+            width: 1.8em;
+            height: calc(100% + 3px);
+            overflow: visible;
+        }
+
+        .sqrt-symbol svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .sqrt-symbol path {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 3;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-3 text-primary">畢氏定理練習</h1>
+            <p class="text-2xl font-semibold text-gray-700 dark:text-gray-300">a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup></p>
+        </div>
+
+        <!-- Score Board -->
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6 flex justify-around items-center">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="correct">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">正確</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-red-600 dark:text-red-400" id="incorrect">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">錯誤</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-primary" id="accuracy">0%</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">正確率</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-6">
+            <!-- Canvas for Triangle -->
+            <div class="flex justify-center mb-6">
+                <canvas id="triangleCanvas" width="500" height="380" class="max-w-full h-auto"></canvas>
+            </div>
+
+            <!-- Question -->
+            <div class="text-center mb-6">
+                <div class="text-xl mb-4" id="question">
+                    載入題目中...
+                </div>
+            </div>
+
+            <!-- Fill in the blanks for basic pythagorean theorem -->
+            <div id="basicFillBlanksSection" class="flex flex-col items-center gap-6 mb-6">
+                <div class="text-center mb-2">
+                    <p class="text-lg font-semibold mb-2">利用畢氏定理計算：</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        (提示：求斜邊用加法，求股用減法)
+                    </p>
+                </div>
+
+                <!-- Step by step formula for basic triangle -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-gray-300 dark:border-gray-600 max-w-2xl w-full">
+                    <!-- Formula: √(?)² operation (?)² -->
+                    <div class="flex items-center justify-center gap-2 mb-6 text-xl flex-wrap">
+                        <span class="font-semibold" id="basicUnknownLabel">?</span>
+                        <span class="font-semibold">=</span>
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <span class="text-gray-600 dark:text-gray-400">(</span>
+                                <input type="number" id="basicBlank1" class="blank-input w-16 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span class="text-gray-600 dark:text-gray-400">)</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl align-middle" style="vertical-align: -0.2em;">²</span>
+
+                                <!-- Operation selector for basic triangle -->
+                                <select id="basicOperationSelect" class="px-3 py-2 border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-bold bg-white dark:text-white">
+                                    <option value="">選擇</option>
+                                    <option value="+">+</option>
+                                    <option value="-">−</option>
+                                </select>
+
+                                <span class="text-gray-600 dark:text-gray-400">(</span>
+                                <input type="number" id="basicBlank2" class="blank-input w-16 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span class="text-gray-600 dark:text-gray-400">)</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl align-middle" style="vertical-align: -0.2em;">²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Equals and simplification -->
+                    <div class="flex items-center justify-center gap-2 mb-6 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <input type="number" id="basicBlank3" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span id="basicOperationDisplay" class="text-purple-600 dark:text-purple-400 font-bold text-2xl">+</span>
+                                <input type="number" id="basicBlank4" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sum -->
+                    <div class="flex items-center justify-center gap-2 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <input type="number" id="basicBlank5" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final simplified answer -->
+                    <div class="flex items-center justify-center gap-2 mt-6 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="flex flex-col items-center gap-2">
+                            <input type="text" id="basicBlank6" class="blank-input w-32 px-2 py-1 text-center border-2 border-green-400 rounded focus:outline-none focus:border-green-600 dark:bg-gray-700 text-lg font-semibold" placeholder="最簡根式">
+                            <div id="basicBlank6Preview" class="text-2xl min-h-[2em] flex items-center justify-center"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Math Symbol Buttons for final answer -->
+                <div class="flex gap-2 flex-wrap justify-center mt-4">
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="√">√</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="1">1</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="2">2</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="3">3</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="4">4</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="5">5</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="6">6</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="7">7</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="8">8</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="9">9</button>
+                    <button class="basic-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="0">0</button>
+                    <button id="basicClearBtn" class="bg-red-200 dark:bg-red-900/40 hover:bg-red-300 dark:hover:bg-red-800/60 text-red-800 dark:text-red-300 font-bold py-2 px-4 rounded-lg transition-all text-lg">清除</button>
+                </div>
+
+                <button
+                    id="checkButton"
+                    class="bg-primary hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 mt-4"
+                >
+                    檢查答案
+                </button>
+            </div>
+
+            <!-- Feedback -->
+            <div id="feedback" class="text-center mb-4 min-h-[60px] flex items-center justify-center">
+            </div>
+
+            <!-- Next Button -->
+            <div class="text-center flex gap-3 justify-center">
+                <button
+                    id="nextButton"
+                    class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-8 rounded-lg transition-all duration-200 hidden"
+                >
+                    下一題
+                </button>
+                <button
+                    id="advancedButton"
+                    class="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200 hidden"
+                >
+                    🎯 進階：坐標平面應用
+                </button>
+            </div>
+        </div>
+
+        <!-- Coordinate Plane Section (Hidden by default) -->
+        <div id="coordinateSection" class="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-6 hidden">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold text-primary mb-2">坐標平面上的兩點距離</h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-2">
+                    請在坐標平面上點擊標記兩個點
+                </p>
+                <div class="flex gap-2 justify-center items-center">
+                    <span class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-semibold" id="pointStatus">
+                        點擊第一個點 (A)
+                    </span>
+                    <button
+                        id="resetPointsButton"
+                        class="px-3 py-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm font-semibold rounded-full transition-all hidden"
+                    >
+                        🔄 重新選點
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2" id="coordinateQuestion">
+                </p>
+            </div>
+
+            <!-- Coordinate Canvas -->
+            <div class="flex justify-center mb-6">
+                <canvas id="coordinateCanvas" width="500" height="500" class="max-w-full h-auto border-2 border-gray-300 dark:border-gray-600 rounded-lg"></canvas>
+            </div>
+
+            <!-- Fill in the blanks section -->
+            <div id="fillBlanksSection" class="flex flex-col items-center gap-6 mb-6 hidden">
+                <div class="text-center mb-2">
+                    <p class="text-lg font-semibold mb-2">利用畢氏定理，計算兩點距離：</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        (Δx為兩點X座標差，Δy為兩點Y座標差)
+                    </p>
+                </div>
+
+                <!-- Step by step formula -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-gray-300 dark:border-gray-600 max-w-2xl w-full">
+                    <!-- Formula line 1: sqrt calculation -->
+                    <div class="flex items-center justify-center gap-2 mb-6 text-xl flex-wrap">
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <span class="text-gray-600 dark:text-gray-400">(</span>
+                                <input type="number" id="blank1" class="blank-input w-16 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span class="text-gray-600 dark:text-gray-400">)</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl align-middle" style="vertical-align: -0.2em;">²</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl">+</span>
+                                <span class="text-gray-600 dark:text-gray-400">(</span>
+                                <input type="number" id="blank2" class="blank-input w-16 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span class="text-gray-600 dark:text-gray-400">)</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl align-middle" style="vertical-align: -0.2em;">²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Equals and simplification -->
+                    <div class="flex items-center justify-center gap-2 mb-6 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <input type="number" id="blank3" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-2xl">+</span>
+                                <input type="number" id="blank4" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final answer -->
+                    <div class="flex items-center justify-center gap-2 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="sqrt-wrapper">
+                            <span class="sqrt-symbol">
+                                <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                    <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                                </svg>
+                            </span>
+                            <div class="sqrt-content">
+                                <input type="number" id="blank5" class="blank-input w-20 px-2 py-1 text-center border-2 border-purple-400 rounded focus:outline-none focus:border-purple-600 dark:bg-gray-700 text-lg font-semibold" placeholder="?">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final simplified answer -->
+                    <div class="flex items-center justify-center gap-2 mt-6 text-xl flex-wrap">
+                        <span class="font-semibold">=</span>
+                        <div class="flex flex-col items-center gap-2">
+                            <input type="text" id="blank6" class="blank-input w-32 px-2 py-1 text-center border-2 border-green-400 rounded focus:outline-none focus:border-green-600 dark:bg-gray-700 text-lg font-semibold" placeholder="最簡根式">
+                            <div id="blank6Preview" class="text-2xl min-h-[2em] flex items-center justify-center"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Math Symbol Buttons for final answer -->
+                <div class="flex gap-2 flex-wrap justify-center mt-4">
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="√">√</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="1">1</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="2">2</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="3">3</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="4">4</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="5">5</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="6">6</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="7">7</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="8">8</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="9">9</button>
+                    <button class="blank-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="0">0</button>
+                    <button id="blankClearBtn" class="bg-red-200 dark:bg-red-900/40 hover:bg-red-300 dark:hover:bg-red-800/60 text-red-800 dark:text-red-300 font-bold py-2 px-4 rounded-lg transition-all text-lg">清除</button>
+                </div>
+
+                <button
+                    id="checkAllBlanksButton"
+                    class="bg-primary hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 mt-4"
+                >
+                    檢查答案
+                </button>
+            </div>
+
+            <!-- Old answer input (hidden) -->
+            <div id="oldAnswerSection" class="hidden">
+                <input
+                    type="text"
+                    id="coordinateAnswerInput"
+                    class="w-full max-w-xs px-4 py-3 text-xl text-center border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-primary dark:bg-gray-800 dark:text-white transition-colors"
+                    placeholder="輸入距離"
+                    disabled
+                >
+                <!-- Math Symbol Buttons -->
+                <div class="flex gap-2 flex-wrap justify-center">
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="√">√</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="1">1</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="2">2</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="3">3</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="4">4</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="5">5</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="6">6</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="7">7</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="8">8</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="9">9</button>
+                    <button class="coord-math-btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all text-xl" data-value="0">0</button>
+                    <button id="coordClearBtn" class="bg-red-200 dark:bg-red-900/40 hover:bg-red-300 dark:hover:bg-red-800/60 text-red-800 dark:text-red-300 font-bold py-2 px-4 rounded-lg transition-all text-lg">清除</button>
+                </div>
+                <button
+                    id="checkCoordinateButton"
+                    class="w-full max-w-xs bg-primary hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95"
+                >
+                    檢查答案
+                </button>
+            </div>
+
+            <!-- Coordinate Feedback -->
+            <div id="coordinateFeedback" class="text-center mb-4 min-h-[60px] flex items-center justify-center">
+            </div>
+
+            <!-- Back and Next Buttons -->
+            <div class="text-center flex gap-3 justify-center">
+                <button
+                    id="backToBasicButton"
+                    class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-8 rounded-lg transition-all duration-200"
+                >
+                    ← 回到基礎練習
+                </button>
+                <button
+                    id="nextCoordinateButton"
+                    class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-8 rounded-lg transition-all duration-200 hidden"
+                >
+                    下一題
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4" id="instructions">
+            <h3 class="font-semibold mb-2 text-blue-900 dark:text-blue-300">📚 畢氏定理公式</h3>
+            <p class="text-sm text-blue-800 dark:text-blue-400">
+                在直角三角形中，兩股的平方和等於斜邊的平方：<br>
+                <strong>a² + b² = c²</strong><br>
+                其中 c 是斜邊（最長的邊），a 和 b 是兩股（構成直角的兩邊）
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Game State
+        let currentQuestion = null;
+        let currentCoordinateQuestion = null;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        // DOM Elements
+        const canvas = document.getElementById('triangleCanvas');
+        const ctx = canvas.getContext('2d');
+        const questionDiv = document.getElementById('question');
+        const checkButton = document.getElementById('checkButton');
+        const nextButton = document.getElementById('nextButton');
+        const feedbackDiv = document.getElementById('feedback');
+        const advancedButton = document.getElementById('advancedButton');
+
+        // Coordinate elements
+        const coordinateCanvas = document.getElementById('coordinateCanvas');
+        const coordCtx = coordinateCanvas.getContext('2d');
+        const coordinateSection = document.getElementById('coordinateSection');
+        const coordinateAnswerInput = document.getElementById('coordinateAnswerInput');
+        const checkCoordinateButton = document.getElementById('checkCoordinateButton');
+        const nextCoordinateButton = document.getElementById('nextCoordinateButton');
+        const backToBasicButton = document.getElementById('backToBasicButton');
+        const coordinateFeedback = document.getElementById('coordinateFeedback');
+        const coordinateQuestionDiv = document.getElementById('coordinateQuestion');
+        const pointStatus = document.getElementById('pointStatus');
+        const resetPointsButton = document.getElementById('resetPointsButton');
+
+        // User selected points
+        let userPoints = [];
+        let pointsLocked = false;
+        let targetPoints = null; // The points user should mark
+        let currentPointToMark = 0; // 0 for A, 1 for B
+
+        // Question types
+        const QUESTION_TYPES = {
+            FIND_C: 'find_c',  // Given a and b, find c (hypotenuse)
+            FIND_A: 'find_a',  // Given b and c, find a
+            FIND_B: 'find_b'   // Given a and c, find b
+        };
+
+        function generateQuestion() {
+            const types = Object.values(QUESTION_TYPES);
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            let a, b, c, unknown, exactAnswer;
+
+            if (type === QUESTION_TYPES.FIND_C) {
+                // Generate two integer legs (1-9)
+                a = Math.floor(Math.random() * 9) + 1; // 1-9
+                b = Math.floor(Math.random() * 9) + 1; // 1-9
+                const cSquared = a * a + b * b;
+                c = Math.sqrt(cSquared);
+                unknown = 'c';
+                exactAnswer = simplifySquareRoot(cSquared);
+            } else if (type === QUESTION_TYPES.FIND_A) {
+                // Generate one leg and hypotenuse as integers (1-9)
+                b = Math.floor(Math.random() * 7) + 1; // 1-7
+                c = Math.floor(Math.random() * 3) + b + 2; // Ensure c > b and c ≤ 9
+                if (c > 9) c = 9;
+                const aSquared = c * c - b * b;
+                a = Math.sqrt(aSquared);
+                unknown = 'a';
+                exactAnswer = simplifySquareRoot(aSquared);
+            } else {
+                // Generate one leg and hypotenuse as integers (1-9)
+                a = Math.floor(Math.random() * 7) + 1; // 1-7
+                c = Math.floor(Math.random() * 3) + a + 2; // Ensure c > a and c ≤ 9
+                if (c > 9) c = 9;
+                const bSquared = c * c - a * a;
+                b = Math.sqrt(bSquared);
+                unknown = 'b';
+                exactAnswer = simplifySquareRoot(bSquared);
+            }
+
+            return { a, b, c, unknown, exactAnswer };
+        }
+
+        function drawTriangle(displayA, displayB, displayC, unknown) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Check if dark mode
+            const isDark = document.documentElement.classList.contains('dark');
+
+            // Get numeric values for scaling (use known values)
+            const numA = displayA === '?' ? 10 : displayA;
+            const numB = displayB === '?' ? 10 : displayB;
+
+            // Scale triangle to fit canvas - leave more space at bottom
+            const maxSize = 240;
+            const scale = Math.min(maxSize / Math.max(numA, numB), maxSize / Math.max(numA, numB));
+            const scaledA = numB * scale;
+            const scaledB = numA * scale;
+
+            // Triangle vertices - positioned higher to leave space for bottom label
+            const x1 = 120;
+            const y1 = 50;
+            const x2 = x1;
+            const y2 = y1 + scaledB;
+            const x3 = x1 + scaledA;
+            const y3 = y2;
+
+            // Draw triangle
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x3, y3);
+            ctx.closePath();
+            ctx.strokeStyle = isDark ? '#9CA3AF' : '#4B5563';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Fill with light color
+            ctx.fillStyle = isDark ? 'rgba(93, 92, 222, 0.1)' : 'rgba(93, 92, 222, 0.1)';
+            ctx.fill();
+
+            // Draw right angle marker
+            const markerSize = 20;
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2, y2 - markerSize);
+            ctx.lineTo(x2 + markerSize, y2 - markerSize);
+            ctx.lineTo(x2 + markerSize, y2);
+            ctx.closePath();
+            ctx.strokeStyle = isDark ? '#9CA3AF' : '#4B5563';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Side a (vertical) - letter = number on same line
+            ctx.font = 'italic bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#A78BFA' : '#7C3AED';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            // Measure text to position properly
+            const aLetterMetrics = ctx.measureText('a ');
+            ctx.fillText('a ', x1 - 100, (y1 + y2) / 2);
+
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#9CA3AF' : '#6B7280';
+            const aEqualsMetrics = ctx.measureText('= ');
+            ctx.fillText('= ', x1 - 100 + aLetterMetrics.width, (y1 + y2) / 2);
+
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = isDark ? '#E5E7EB' : '#1F2937';
+            ctx.fillText(displayA, x1 - 100 + aLetterMetrics.width + aEqualsMetrics.width, (y1 + y2) / 2);
+
+            // Side b (horizontal) - letter = number on same line
+            ctx.font = 'italic bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#A78BFA' : '#7C3AED';
+
+            // Calculate total width for centering
+            const bLetterWidth = ctx.measureText('b ').width;
+            ctx.font = 'bold 20px sans-serif';
+            const bEqualsWidth = ctx.measureText('= ').width;
+            ctx.font = 'bold 24px sans-serif';
+            const bValueWidth = ctx.measureText(displayB.toString()).width;
+            const bTotalWidth = bLetterWidth + bEqualsWidth + bValueWidth;
+            const bStartX = (x2 + x3) / 2 - bTotalWidth / 2;
+
+            ctx.font = 'italic bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#A78BFA' : '#7C3AED';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('b ', bStartX, y2 + 35);
+
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#9CA3AF' : '#6B7280';
+            ctx.fillText('= ', bStartX + bLetterWidth, y2 + 35);
+
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = isDark ? '#E5E7EB' : '#1F2937';
+            ctx.fillText(displayB, bStartX + bLetterWidth + bEqualsWidth, y2 + 35);
+
+            // Side c (hypotenuse) - letter = number on same line
+            const hypMidX = (x1 + x3) / 2;
+            const hypMidY = (y1 + y3) / 2;
+
+            ctx.font = 'italic bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#A78BFA' : '#7C3AED';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+
+            const cLetterMetrics = ctx.measureText('c ');
+            ctx.fillText('c ', hypMidX + 25, hypMidY - 10);
+
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#9CA3AF' : '#6B7280';
+            const cEqualsMetrics = ctx.measureText('= ');
+            ctx.fillText('= ', hypMidX + 25 + cLetterMetrics.width, hypMidY - 10);
+
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = isDark ? '#E5E7EB' : '#1F2937';
+            ctx.fillText(displayC, hypMidX + 25 + cLetterMetrics.width + cEqualsMetrics.width, hypMidY - 10);
+
+            // Reset text properties
+            ctx.textAlign = 'start';
+            ctx.textBaseline = 'alphabetic';
+        }
+
+        function updateQuestion() {
+            currentQuestion = generateQuestion();
+            const { a, b, c, unknown } = currentQuestion;
+
+            // For display, we need integer values for the known sides
+            let displayA, displayB, displayC;
+
+            if (unknown === 'c') {
+                displayA = Math.round(a);
+                displayB = Math.round(b);
+                displayC = '?';
+            } else if (unknown === 'a') {
+                displayA = '?';
+                displayB = Math.round(b);
+                displayC = Math.round(c);
+            } else {
+                displayA = Math.round(a);
+                displayB = '?';
+                displayC = Math.round(c);
+            }
+
+            // Draw triangle with display values
+            drawTriangle(displayA, displayB, displayC, unknown);
+
+            // Update question text
+            let questionText = '';
+            if (unknown === 'c') {
+                questionText = `已知 a = ${displayA}，b = ${displayB}，求斜邊 c = ?`;
+            } else if (unknown === 'a') {
+                questionText = `已知 b = ${displayB}，c = ${displayC}，求 a = ?`;
+            } else {
+                questionText = `已知 a = ${displayA}，c = ${displayC}，求 b = ?`;
+            }
+            questionDiv.textContent = questionText;
+
+            // Update basic fill blanks label
+            document.getElementById('basicUnknownLabel').textContent = unknown;
+
+            // Reset blanks
+            document.getElementById('basicBlank1').value = '';
+            document.getElementById('basicBlank2').value = '';
+            document.getElementById('basicBlank3').value = '';
+            document.getElementById('basicBlank4').value = '';
+            document.getElementById('basicBlank5').value = '';
+            document.getElementById('basicBlank6').value = '';
+            document.getElementById('basicOperationSelect').value = '';
+            document.getElementById('basicOperationDisplay').textContent = '+';
+
+            // Enable all blanks
+            document.getElementById('basicBlank1').disabled = false;
+            document.getElementById('basicBlank2').disabled = false;
+            document.getElementById('basicBlank3').disabled = false;
+            document.getElementById('basicBlank4').disabled = false;
+            document.getElementById('basicBlank5').disabled = false;
+            document.getElementById('basicBlank6').disabled = false;
+            document.getElementById('basicOperationSelect').disabled = false;
+
+            // Reset feedback
+            feedbackDiv.innerHTML = '';
+            checkButton.classList.remove('hidden');
+            nextButton.classList.add('hidden');
+            advancedButton.classList.add('hidden');
+
+            // Focus on first blank
+            document.getElementById('basicBlank1').focus();
+        }
+
+        // Parse square root expression like "√5", "2√3", "10"
+        function parseExpression(expr) {
+            expr = expr.trim();
+
+            // Handle plain integers
+            if (/^\d+$/.test(expr)) {
+                return parseInt(expr);
+            }
+
+            // Handle expressions like "√5" or "√10"
+            const sqrtMatch = expr.match(/^√(\d+)$/);
+            if (sqrtMatch) {
+                return Math.sqrt(parseInt(sqrtMatch[1]));
+            }
+
+            // Handle expressions like "2√3" or "5√2"
+            const coeffSqrtMatch = expr.match(/^(\d+)√(\d+)$/);
+            if (coeffSqrtMatch) {
+                const coeff = parseInt(coeffSqrtMatch[1]);
+                const radicand = parseInt(coeffSqrtMatch[2]);
+                return coeff * Math.sqrt(radicand);
+            }
+
+            return NaN;
+        }
+
+        // Simplify square root to form like "2√3"
+        function simplifySquareRoot(n) {
+            // Check if it's a perfect square
+            const sqrtValue = Math.sqrt(n);
+            if (Math.abs(sqrtValue - Math.round(sqrtValue)) < 0.0001) {
+                return Math.round(sqrtValue).toString();
+            }
+
+            // Find largest perfect square factor
+            let largestFactor = 1;
+            let remaining = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (remaining % (i * i) === 0) {
+                    largestFactor *= i;
+                    remaining = remaining / (i * i);
+                }
+            }
+
+            if (largestFactor > 1) {
+                return `${largestFactor}√${remaining}`;
+            }
+
+            return `√${n}`;
+        }
+
+        function checkAnswer() {
+            const { a, b, c, unknown, exactAnswer } = currentQuestion;
+
+            // Get user inputs from blanks
+            const blank1 = parseInt(document.getElementById('basicBlank1').value);
+            const blank2 = parseInt(document.getElementById('basicBlank2').value);
+            const operation = document.getElementById('basicOperationSelect').value;
+            const blank3 = parseInt(document.getElementById('basicBlank3').value);
+            const blank4 = parseInt(document.getElementById('basicBlank4').value);
+            const blank5 = parseInt(document.getElementById('basicBlank5').value);
+            const blank6 = document.getElementById('basicBlank6').value.trim();
+
+            // Determine correct values based on unknown
+            let value1, value2, correctOp, squared1, squared2, result;
+
+            if (unknown === 'c') {
+                // Finding hypotenuse: c² = a² + b²
+                value1 = Math.round(a);
+                value2 = Math.round(b);
+                correctOp = '+';
+                squared1 = value1 * value1;
+                squared2 = value2 * value2;
+                result = squared1 + squared2;
+            } else if (unknown === 'a') {
+                // Finding leg a: a² = c² - b²
+                value1 = Math.round(c);
+                value2 = Math.round(b);
+                correctOp = '-';
+                squared1 = value1 * value1;
+                squared2 = value2 * value2;
+                result = squared1 - squared2;
+            } else {
+                // Finding leg b: b² = c² - a²
+                value1 = Math.round(c);
+                value2 = Math.round(a);
+                correctOp = '-';
+                squared1 = value1 * value1;
+                squared2 = value2 * value2;
+                result = squared1 - squared2;
+            }
+
+            // Check each blank
+            let errors = [];
+
+            // Blank 1 and 2: Can be in any order (commutative property)
+            const validPair1 = (blank1 === value1 && blank2 === value2) || (blank1 === value2 && blank2 === value1);
+            if (isNaN(blank1) || isNaN(blank2) || !validPair1) {
+                errors.push(`前兩個空格應該填入 ${value1} 和 ${value2}（順序可互換）`);
+            }
+
+            // Operation
+            if (operation !== correctOp) {
+                errors.push(`運算符號應該選擇「${correctOp}」`);
+            }
+
+            // Blank 3 and 4: squared values (can be in any order)
+            const validPair2 = (blank3 === squared1 && blank4 === squared2) || (blank3 === squared2 && blank4 === squared1);
+            if (isNaN(blank3) || isNaN(blank4) || !validPair2) {
+                errors.push(`第三、四個空格應該填入 ${squared1} 和 ${squared2}（順序可互換）`);
+            }
+
+            // Blank 5: result
+            if (isNaN(blank5) || blank5 !== result) {
+                if (correctOp === '+') {
+                    errors.push(`第五個空格應該填入 ${squared1} + ${squared2} = ${result}`);
+                } else {
+                    errors.push(`第五個空格應該填入 ${squared1} - ${squared2} = ${result}`);
+                }
+            }
+
+            // Blank 6: simplified answer
+            const userFinalAnswer = parseExpression(blank6);
+            let correctValue;
+            if (unknown === 'c') {
+                correctValue = c;
+            } else if (unknown === 'a') {
+                correctValue = a;
+            } else {
+                correctValue = b;
+            }
+
+            if (isNaN(userFinalAnswer) || Math.abs(userFinalAnswer - correctValue) >= 0.0001) {
+                errors.push(`最後答案應該是 ${exactAnswer}`);
+            }
+
+            // Show feedback
+            if (errors.length === 0) {
+                correctCount++;
+                updateScore();
+                showFeedback(`🎉 完全正確！答案是 ${exactAnswer}`, 'success');
+
+                // Disable all inputs
+                document.getElementById('basicBlank1').disabled = true;
+                document.getElementById('basicBlank2').disabled = true;
+                document.getElementById('basicBlank3').disabled = true;
+                document.getElementById('basicBlank4').disabled = true;
+                document.getElementById('basicBlank5').disabled = true;
+                document.getElementById('basicBlank6').disabled = true;
+                document.getElementById('basicOperationSelect').disabled = true;
+
+                checkButton.classList.add('hidden');
+                nextButton.classList.remove('hidden');
+                advancedButton.classList.remove('hidden');
+            } else {
+                incorrectCount++;
+                updateScore();
+                const errorMessage = errors.join('<br>');
+                showFeedback(`❌ 有錯誤：<br><small>${errorMessage}</small>`, 'error');
+            }
+        }
+
+        function getHint(unknown, a, b, c) {
+            if (unknown === 'c') {
+                return `使用 c = √(a² + b²) = √(${a}² + ${b}²) = √${a*a + b*b}`;
+            } else if (unknown === 'a') {
+                return `使用 a = √(c² - b²) = √(${c}² - ${b}²) = √${c*c - b*b}`;
+            } else {
+                return `使用 b = √(c² - a²) = √(${c}² - ${a}²) = √${c*c - a*a}`;
+            }
+        }
+
+        function showFeedback(message, type) {
+            const colors = {
+                success: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
+                error: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700',
+                warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700'
+            };
+
+            feedbackDiv.innerHTML = `
+                <div class="fade-in ${colors[type]} border px-4 py-3 rounded-lg max-w-md mx-auto">
+                    ${message}
+                </div>
+            `;
+        }
+
+        function updateScore() {
+            document.getElementById('correct').textContent = correctCount;
+            document.getElementById('incorrect').textContent = incorrectCount;
+
+            const total = correctCount + incorrectCount;
+            const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // ========== Coordinate Plane Functions ==========
+
+        // Convert canvas coordinates to math coordinates
+        function canvasToMathCoords(canvasX, canvasY) {
+            const rect = coordinateCanvas.getBoundingClientRect();
+            const scaleX = coordinateCanvas.width / rect.width;
+            const scaleY = coordinateCanvas.height / rect.height;
+
+            const adjustedX = (canvasX - rect.left) * scaleX;
+            const adjustedY = (canvasY - rect.top) * scaleY;
+
+            const centerX = coordinateCanvas.width / 2;
+            const centerY = coordinateCanvas.height / 2;
+            const scale = 40;
+
+            const mathX = Math.round((adjustedX - centerX) / scale);
+            const mathY = Math.round((centerY - adjustedY) / scale);
+
+            // Clamp to -5 to 5
+            return {
+                x: Math.max(-5, Math.min(5, mathX)),
+                y: Math.max(-5, Math.min(5, mathY))
+            };
+        }
+
+        // Handle canvas click
+        function handleCoordinateCanvasClick(event) {
+            if (pointsLocked || !targetPoints) return;
+
+            const coords = canvasToMathCoords(event.clientX, event.clientY);
+            const targetPoint = targetPoints[currentPointToMark];
+
+            // Check if clicked point matches target
+            if (coords.x === targetPoint.x && coords.y === targetPoint.y) {
+                // Correct point!
+                userPoints.push(coords);
+
+                if (currentPointToMark === 0) {
+                    // First point correct
+                    pointStatus.textContent = `✓ A點正確！請點擊 B(${targetPoints[1].x}, ${targetPoints[1].y})`;
+                    pointStatus.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'text-blue-800', 'dark:text-blue-300');
+                    pointStatus.classList.add('bg-green-100', 'dark:bg-green-900/30', 'text-green-800', 'dark:text-green-300');
+                    currentPointToMark = 1;
+                    resetPointsButton.classList.remove('hidden');
+                } else {
+                    // Both points correct!
+                    pointStatus.textContent = '✓ 兩個點都正確！現在利用畢氏定理計算距離';
+
+                    const x1 = userPoints[0].x;
+                    const y1 = userPoints[0].y;
+                    const x2 = userPoints[1].x;
+                    const y2 = userPoints[1].y;
+
+                    coordinateQuestionDiv.textContent = `計算 A(${x1}, ${y1}) 和 B(${x2}, ${y2}) 的距離`;
+
+                    // Show fill in blanks section
+                    document.getElementById('fillBlanksSection').classList.remove('hidden');
+
+                    // Clear all blanks
+                    document.getElementById('blank1').value = '';
+                    document.getElementById('blank2').value = '';
+                    document.getElementById('blank3').value = '';
+                    document.getElementById('blank4').value = '';
+                    document.getElementById('blank5').value = '';
+                    document.getElementById('blank6').value = '';
+
+                    // Focus on first blank
+                    document.getElementById('blank1').focus();
+                }
+
+                drawCoordinatePlaneWithUserPoints();
+            } else {
+                // Wrong point
+                const pointName = currentPointToMark === 0 ? 'A' : 'B';
+                showCoordinateFeedback(`❌ 這不是 ${pointName}(${targetPoint.x}, ${targetPoint.y})，請重試！`, 'error');
+                setTimeout(() => {
+                    coordinateFeedback.innerHTML = '';
+                }, 1500);
+            }
+        }
+
+        // Reset user points
+        function resetUserPoints() {
+            userPoints = [];
+            pointsLocked = false;
+            currentPointToMark = 0;
+
+            // Generate target points
+            const x1 = Math.floor(Math.random() * 11) - 5; // -5 to 5
+            const y1 = Math.floor(Math.random() * 11) - 5;
+            let x2 = Math.floor(Math.random() * 11) - 5;
+            let y2 = Math.floor(Math.random() * 11) - 5;
+
+            // Make sure points are different and X, Y coordinates are different
+            while ((x2 === x1 && y2 === y1) || x2 === x1 || y2 === y1 || Math.abs(x2 - x1) > 9 || Math.abs(y2 - y1) > 9) {
+                x2 = Math.floor(Math.random() * 11) - 5;
+                y2 = Math.floor(Math.random() * 11) - 5;
+            }
+
+            targetPoints = [
+                { x: x1, y: y1 },
+                { x: x2, y: y2 }
+            ];
+
+            pointStatus.textContent = `請點擊 A(${x1}, ${y1})`;
+            pointStatus.classList.remove('bg-green-100', 'dark:bg-green-900/30', 'text-green-800', 'dark:text-green-300');
+            pointStatus.classList.add('bg-blue-100', 'dark:bg-blue-900/30', 'text-blue-800', 'dark:text-blue-300');
+
+            resetPointsButton.classList.add('hidden');
+            coordinateQuestionDiv.textContent = `需要標記的點：A(${x1}, ${y1}) 和 B(${x2}, ${y2})`;
+            coordinateAnswerInput.value = '';
+            coordinateAnswerInput.disabled = true;
+            coordinateFeedback.innerHTML = '';
+            checkCoordinateButton.classList.remove('hidden');
+            nextCoordinateButton.classList.add('hidden');
+
+            // Hide fill blanks section and reset inputs
+            document.getElementById('fillBlanksSection').classList.add('hidden');
+            document.getElementById('blank1').disabled = false;
+            document.getElementById('blank2').disabled = false;
+            document.getElementById('blank3').disabled = false;
+            document.getElementById('blank4').disabled = false;
+            document.getElementById('blank5').disabled = false;
+            document.getElementById('blank6').disabled = false;
+            document.getElementById('checkAllBlanksButton').classList.remove('hidden');
+
+            drawCoordinatePlaneWithUserPoints();
+        }
+
+        // Draw coordinate plane with user points
+        function drawCoordinatePlaneWithUserPoints() {
+            if (userPoints.length === 0) {
+                drawCoordinatePlane(0, 0, 0, 0, false);
+            } else if (userPoints.length === 1) {
+                drawCoordinatePlane(userPoints[0].x, userPoints[0].y, userPoints[0].x, userPoints[0].y, false);
+            } else {
+                drawCoordinatePlane(userPoints[0].x, userPoints[0].y, userPoints[1].x, userPoints[1].y, true);
+            }
+        }
+
+        function generateCoordinateQuestion() {
+            // Generate two points with coordinates from -5 to 5
+            const x1 = Math.floor(Math.random() * 11) - 5; // -5 to 5
+            const y1 = Math.floor(Math.random() * 11) - 5; // -5 to 5
+            let x2 = Math.floor(Math.random() * 11) - 5;
+            let y2 = Math.floor(Math.random() * 11) - 5;
+
+            // Make sure points are different and distance not too large
+            while ((x2 === x1 && y2 === y1) || Math.abs(x2 - x1) > 9 || Math.abs(y2 - y1) > 9) {
+                x2 = Math.floor(Math.random() * 11) - 5;
+                y2 = Math.floor(Math.random() * 11) - 5;
+            }
+
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            const distanceSquared = dx * dx + dy * dy;
+            const distance = Math.sqrt(distanceSquared);
+            const exactAnswer = simplifySquareRoot(distanceSquared);
+
+            return { x1, y1, x2, y2, dx, dy, distance, exactAnswer };
+        }
+
+        function drawCoordinatePlane(x1, y1, x2, y2, showTriangle = true) {
+            coordCtx.clearRect(0, 0, coordinateCanvas.width, coordinateCanvas.height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const centerX = coordinateCanvas.width / 2;
+            const centerY = coordinateCanvas.height / 2;
+            const scale = 40; // pixels per unit
+
+            // Draw grid
+            coordCtx.strokeStyle = isDark ? '#374151' : '#E5E7EB';
+            coordCtx.lineWidth = 1;
+
+            for (let i = -5; i <= 5; i++) {
+                // Vertical lines
+                coordCtx.beginPath();
+                coordCtx.moveTo(centerX + i * scale, 20);
+                coordCtx.lineTo(centerX + i * scale, coordinateCanvas.height - 20);
+                coordCtx.stroke();
+
+                // Horizontal lines
+                coordCtx.beginPath();
+                coordCtx.moveTo(20, centerY - i * scale);
+                coordCtx.lineTo(coordinateCanvas.width - 20, centerY - i * scale);
+                coordCtx.stroke();
+            }
+
+            // Draw axes
+            coordCtx.strokeStyle = isDark ? '#9CA3AF' : '#4B5563';
+            coordCtx.lineWidth = 2;
+
+            // X-axis
+            coordCtx.beginPath();
+            coordCtx.moveTo(20, centerY);
+            coordCtx.lineTo(coordinateCanvas.width - 20, centerY);
+            coordCtx.stroke();
+
+            // Y-axis
+            coordCtx.beginPath();
+            coordCtx.moveTo(centerX, 20);
+            coordCtx.lineTo(centerX, coordinateCanvas.height - 20);
+            coordCtx.stroke();
+
+            // Draw axis labels
+            coordCtx.fillStyle = isDark ? '#E5E7EB' : '#1F2937';
+            coordCtx.font = 'bold 16px sans-serif';
+            coordCtx.textAlign = 'center';
+            coordCtx.textBaseline = 'middle';
+
+            // X-axis label
+            coordCtx.fillText('x', coordinateCanvas.width - 30, centerY - 15);
+            // Y-axis label
+            coordCtx.fillText('y', centerX + 15, 30);
+
+            // Draw tick marks and numbers
+            coordCtx.font = '14px sans-serif';
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+
+                // X-axis ticks
+                coordCtx.fillText(i, centerX + i * scale, centerY + 20);
+
+                // Y-axis ticks
+                coordCtx.fillText(i, centerX - 20, centerY - i * scale);
+            }
+
+            // Draw origin
+            coordCtx.fillText('O', centerX - 15, centerY + 15);
+
+            if (showTriangle) {
+                // Convert coordinates to canvas positions
+                const canvasX1 = centerX + x1 * scale;
+                const canvasY1 = centerY - y1 * scale;
+                const canvasX2 = centerX + x2 * scale;
+                const canvasY2 = centerY - y2 * scale;
+
+                // Draw triangle legs
+                coordCtx.strokeStyle = isDark ? '#A78BFA' : '#7C3AED';
+                coordCtx.lineWidth = 2;
+                coordCtx.setLineDash([5, 5]);
+
+                // Horizontal leg
+                coordCtx.beginPath();
+                coordCtx.moveTo(canvasX1, canvasY1);
+                coordCtx.lineTo(canvasX2, canvasY1);
+                coordCtx.stroke();
+
+                // Vertical leg
+                coordCtx.beginPath();
+                coordCtx.moveTo(canvasX2, canvasY1);
+                coordCtx.lineTo(canvasX2, canvasY2);
+                coordCtx.stroke();
+
+                coordCtx.setLineDash([]);
+
+                // Draw hypotenuse (distance line)
+                coordCtx.strokeStyle = '#EF4444';
+                coordCtx.lineWidth = 3;
+                coordCtx.beginPath();
+                coordCtx.moveTo(canvasX1, canvasY1);
+                coordCtx.lineTo(canvasX2, canvasY2);
+                coordCtx.stroke();
+
+                // Label the legs
+                coordCtx.fillStyle = isDark ? '#A78BFA' : '#7C3AED';
+                coordCtx.font = 'bold 16px sans-serif';
+
+                const dx = Math.abs(x2 - x1);
+                const dy = Math.abs(y2 - y1);
+
+                // Horizontal distance label
+                const midX = (canvasX1 + canvasX2) / 2;
+                const labelOffsetY = canvasY1 < centerY ? -15 : 15;
+                coordCtx.fillText(`Δx = ${dx}`, midX, canvasY1 + labelOffsetY);
+
+                // Vertical distance label
+                const midY = (canvasY1 + canvasY2) / 2;
+                const labelOffsetX = canvasX2 > centerX ? 30 : -30;
+                coordCtx.fillText(`Δy = ${dy}`, canvasX2 + labelOffsetX, midY);
+
+                // Right angle marker
+                const markerSize = 10;
+                coordCtx.strokeStyle = isDark ? '#A78BFA' : '#7C3AED';
+                coordCtx.lineWidth = 1.5;
+                const markerOffsetX = x2 > x1 ? -markerSize : markerSize;
+                const markerOffsetY = y2 > y1 ? markerSize : -markerSize;
+                coordCtx.beginPath();
+                coordCtx.moveTo(canvasX2, canvasY1);
+                coordCtx.lineTo(canvasX2 + markerOffsetX, canvasY1);
+                coordCtx.lineTo(canvasX2 + markerOffsetX, canvasY1 + markerOffsetY);
+                coordCtx.lineTo(canvasX2, canvasY1 + markerOffsetY);
+                coordCtx.closePath();
+                coordCtx.stroke();
+            }
+
+            // Draw points
+            const canvasX1 = centerX + x1 * scale;
+            const canvasY1 = centerY - y1 * scale;
+            const canvasX2 = centerX + x2 * scale;
+            const canvasY2 = centerY - y2 * scale;
+
+            // Point 1
+            coordCtx.fillStyle = '#EF4444';
+            coordCtx.beginPath();
+            coordCtx.arc(canvasX1, canvasY1, 6, 0, 2 * Math.PI);
+            coordCtx.fill();
+
+            // Point 2
+            coordCtx.beginPath();
+            coordCtx.arc(canvasX2, canvasY2, 6, 0, 2 * Math.PI);
+            coordCtx.fill();
+
+            // Point labels
+            coordCtx.fillStyle = isDark ? '#FCA5A5' : '#DC2626';
+            coordCtx.font = 'bold 16px sans-serif';
+
+            // Only show labels if we have actual different points
+            if (showTriangle) {
+                coordCtx.fillText(`A(${x1}, ${y1})`, canvasX1 - 15, canvasY1 - 15);
+                coordCtx.fillText(`B(${x2}, ${y2})`, canvasX2 + 15, canvasY2 - 15);
+            } else if (x1 !== 0 || y1 !== 0) {
+                // Show single point label
+                coordCtx.fillText(`A(${x1}, ${y1})`, canvasX1 + 15, canvasY1 - 15);
+            }
+        }
+
+        function updateCoordinateQuestion() {
+            currentCoordinateQuestion = generateCoordinateQuestion();
+            const { x1, y1, x2, y2 } = currentCoordinateQuestion;
+
+            // Draw coordinate plane with triangle
+            drawCoordinatePlane(x1, y1, x2, y2, true);
+
+            // Update question text
+            coordinateQuestionDiv.textContent = `求 A(${x1}, ${y1}) 和 B(${x2}, ${y2}) 兩點之間的距離`;
+
+            // Reset input and feedback
+            coordinateAnswerInput.value = '';
+            coordinateAnswerInput.disabled = false;
+            coordinateFeedback.innerHTML = '';
+            checkCoordinateButton.classList.remove('hidden');
+            nextCoordinateButton.classList.add('hidden');
+            coordinateAnswerInput.focus();
+        }
+
+        function checkCoordinateAnswer() {
+            const userInput = coordinateAnswerInput.value.trim();
+
+            if (!userInput) {
+                showCoordinateFeedback('請輸入答案！', 'warning');
+                return;
+            }
+
+            const userAnswer = parseExpression(userInput);
+
+            if (isNaN(userAnswer)) {
+                showCoordinateFeedback('請輸入有效的格式（例如：5、√13、2√5）', 'warning');
+                return;
+            }
+
+            // Calculate distance from user points
+            const x1 = userPoints[0].x;
+            const y1 = userPoints[0].y;
+            const x2 = userPoints[1].x;
+            const y2 = userPoints[1].y;
+
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            const distanceSquared = dx * dx + dy * dy;
+            const distance = Math.sqrt(distanceSquared);
+            const exactAnswer = simplifySquareRoot(distanceSquared);
+
+            // Compare with small tolerance for floating point errors
+            if (Math.abs(userAnswer - distance) < 0.0001) {
+                correctCount++;
+                updateScore();
+                showCoordinateFeedback(`🎉 正確！距離是 ${exactAnswer}`, 'success');
+                coordinateAnswerInput.classList.add('pulse-success');
+                setTimeout(() => coordinateAnswerInput.classList.remove('pulse-success'), 500);
+            } else {
+                incorrectCount++;
+                updateScore();
+                showCoordinateFeedback(
+                    `❌ 錯誤！正確答案是 ${exactAnswer}<br>` +
+                    `<small class="text-sm">提示：d = √[(Δx)² + (Δy)²] = √(${dx}² + ${dy}²) = √${dx*dx + dy*dy}</small>`,
+                    'error'
+                );
+                coordinateAnswerInput.classList.add('shake');
+                setTimeout(() => coordinateAnswerInput.classList.remove('shake'), 500);
+            }
+
+            pointsLocked = true;
+            coordinateAnswerInput.disabled = true;
+            checkCoordinateButton.classList.add('hidden');
+            nextCoordinateButton.classList.remove('hidden');
+        }
+
+        function showCoordinateFeedback(message, type) {
+            const colors = {
+                success: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
+                error: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700',
+                warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700'
+            };
+
+            coordinateFeedback.innerHTML = `
+                <div class="fade-in ${colors[type]} border px-4 py-3 rounded-lg max-w-md mx-auto">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Check all blanks for coordinate distance calculation
+        function checkAllBlanks() {
+            if (userPoints.length !== 2) return;
+
+            const x1 = userPoints[0].x;
+            const y1 = userPoints[0].y;
+            const x2 = userPoints[1].x;
+            const y2 = userPoints[1].y;
+
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+
+            // Get user inputs
+            const blank1 = parseInt(document.getElementById('blank1').value);
+            const blank2 = parseInt(document.getElementById('blank2').value);
+            const blank3 = parseInt(document.getElementById('blank3').value);
+            const blank4 = parseInt(document.getElementById('blank4').value);
+            const blank5 = parseInt(document.getElementById('blank5').value);
+            const blank6 = document.getElementById('blank6').value.trim();
+
+            // Check each blank
+            let errors = [];
+
+            // Blank 1 and 2: Can be Δx, Δy in any order (commutative property)
+            const validPair1 = (blank1 === dx && blank2 === dy) || (blank1 === dy && blank2 === dx);
+            if (isNaN(blank1) || isNaN(blank2) || !validPair1) {
+                errors.push(`前兩個空格應該填入 Δx = ${dx} 和 Δy = ${dy}（順序可互換）`);
+            }
+
+            // Blank 3 and 4: Can be (Δx)², (Δy)² in any order (commutative property)
+            const validPair2 = (blank3 === dx * dx && blank4 === dy * dy) || (blank3 === dy * dy && blank4 === dx * dx);
+            if (isNaN(blank3) || isNaN(blank4) || !validPair2) {
+                errors.push(`第三、四個空格應該填入 ${dx * dx} 和 ${dy * dy}（順序可互換）`);
+            }
+
+            // Blank 5: sum
+            const sum = dx * dx + dy * dy;
+            if (isNaN(blank5) || blank5 !== sum) {
+                errors.push(`第五個空格應該填入 ${dx * dx} + ${dy * dy} = ${sum}`);
+            }
+
+            // Blank 6: simplified answer
+            const exactAnswer = simplifySquareRoot(sum);
+            const userFinalAnswer = parseExpression(blank6);
+            const correctFinalAnswer = Math.sqrt(sum);
+
+            if (isNaN(userFinalAnswer) || Math.abs(userFinalAnswer - correctFinalAnswer) >= 0.0001) {
+                errors.push(`最後答案應該是 ${exactAnswer}`);
+            }
+
+            // Show feedback
+            if (errors.length === 0) {
+                correctCount++;
+                updateScore();
+                showCoordinateFeedback(`🎉 完全正確！距離是 ${exactAnswer}`, 'success');
+                pointsLocked = true;
+                nextCoordinateButton.classList.remove('hidden');
+                document.getElementById('checkAllBlanksButton').classList.add('hidden');
+
+                // Disable all inputs
+                document.getElementById('blank1').disabled = true;
+                document.getElementById('blank2').disabled = true;
+                document.getElementById('blank3').disabled = true;
+                document.getElementById('blank4').disabled = true;
+                document.getElementById('blank5').disabled = true;
+                document.getElementById('blank6').disabled = true;
+            } else {
+                incorrectCount++;
+                updateScore();
+                const errorMessage = errors.join('<br>');
+                showCoordinateFeedback(`❌ 有錯誤：<br><small>${errorMessage}</small>`, 'error');
+            }
+        }
+
+        function showAdvancedMode() {
+            // Hide basic section
+            document.querySelector('.bg-gray-50.dark\\:bg-gray-900.rounded-2xl').classList.add('hidden');
+            document.getElementById('instructions').classList.add('hidden');
+
+            // Show coordinate section
+            coordinateSection.classList.remove('hidden');
+
+            // Initialize interactive mode
+            resetUserPoints();
+        }
+
+        function showBasicMode() {
+            // Show basic section
+            document.querySelector('.bg-gray-50.dark\\:bg-gray-900.rounded-2xl').classList.remove('hidden');
+            document.getElementById('instructions').classList.remove('hidden');
+
+            // Hide coordinate section
+            coordinateSection.classList.add('hidden');
+        }
+
+        // Event Listeners
+        checkButton.addEventListener('click', checkAnswer);
+        nextButton.addEventListener('click', updateQuestion);
+        advancedButton.addEventListener('click', showAdvancedMode);
+
+        // Coordinate event listeners
+        coordinateCanvas.addEventListener('click', handleCoordinateCanvasClick);
+        resetPointsButton.addEventListener('click', resetUserPoints);
+        checkCoordinateButton.addEventListener('click', checkCoordinateAnswer);
+        nextCoordinateButton.addEventListener('click', resetUserPoints);
+        backToBasicButton.addEventListener('click', showBasicMode);
+        document.getElementById('checkAllBlanksButton').addEventListener('click', checkAllBlanks);
+
+        coordinateAnswerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !coordinateAnswerInput.disabled) {
+                checkCoordinateAnswer();
+            }
+        });
+
+        // Coordinate math symbol buttons
+        document.querySelectorAll('.coord-math-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const value = btn.getAttribute('data-value');
+                coordinateAnswerInput.value += value;
+                coordinateAnswerInput.focus();
+            });
+        });
+
+        // Coordinate clear button
+        document.getElementById('coordClearBtn').addEventListener('click', () => {
+            coordinateAnswerInput.value = '';
+            coordinateAnswerInput.focus();
+        });
+
+        // Blank math symbol buttons (for blank6 final answer)
+        document.querySelectorAll('.blank-math-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const value = btn.getAttribute('data-value');
+                const blank6Input = document.getElementById('blank6');
+                blank6Input.value += value;
+                blank6Input.focus();
+            });
+        });
+
+        // Blank clear button
+        document.getElementById('blankClearBtn').addEventListener('click', () => {
+            const blank6Input = document.getElementById('blank6');
+            blank6Input.value = '';
+            blank6Input.focus();
+        });
+
+        // Basic math symbol buttons (for basicBlank6 final answer)
+        document.querySelectorAll('.basic-math-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const value = btn.getAttribute('data-value');
+                const basicBlank6Input = document.getElementById('basicBlank6');
+                basicBlank6Input.value += value;
+                basicBlank6Input.focus();
+            });
+        });
+
+        // Basic clear button
+        document.getElementById('basicClearBtn').addEventListener('click', () => {
+            const basicBlank6Input = document.getElementById('basicBlank6');
+            basicBlank6Input.value = '';
+            basicBlank6Input.focus();
+        });
+
+        // Sync operation selector with display
+        document.getElementById('basicOperationSelect').addEventListener('change', (e) => {
+            const selectedOp = e.target.value;
+            const displaySpan = document.getElementById('basicOperationDisplay');
+            if (selectedOp === '+') {
+                displaySpan.textContent = '+';
+            } else if (selectedOp === '-') {
+                displaySpan.textContent = '−';
+            } else {
+                displaySpan.textContent = '+';
+            }
+        });
+
+        // Preview function for square root expressions
+        function previewSqrtExpression(inputValue, previewElement) {
+            if (!inputValue.trim()) {
+                previewElement.innerHTML = '';
+                return;
+            }
+
+            // Parse the expression
+            const match1 = inputValue.match(/^(\d+)$/); // Just a number like "5"
+            const match2 = inputValue.match(/^√(\d+)$/); // Like "√5"
+            const match3 = inputValue.match(/^(\d+)√(\d+)$/); // Like "2√3"
+
+            if (match1) {
+                // Just display the number
+                previewElement.innerHTML = `<span class="font-bold">${match1[1]}</span>`;
+            } else if (match2) {
+                // Display √n with proper styling
+                previewElement.innerHTML = `
+                    <div class="sqrt-wrapper" style="display: inline-flex;">
+                        <span class="sqrt-symbol">
+                            <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                            </svg>
+                        </span>
+                        <div class="sqrt-content" style="display: inline-flex;">
+                            <span class="font-bold">${match2[1]}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (match3) {
+                // Display coefficient√n with proper styling
+                previewElement.innerHTML = `
+                    <span class="font-bold">${match3[1]}</span>
+                    <div class="sqrt-wrapper" style="display: inline-flex;">
+                        <span class="sqrt-symbol">
+                            <svg viewBox="0 0 30 50" preserveAspectRatio="none">
+                                <path d="M 2 35 L 8 45 L 12 35 L 28 2"/>
+                            </svg>
+                        </span>
+                        <div class="sqrt-content" style="display: inline-flex;">
+                            <span class="font-bold">${match3[2]}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Invalid format, just show the text
+                previewElement.innerHTML = `<span class="text-gray-400">${inputValue}</span>`;
+            }
+        }
+
+        // Add input listeners for preview
+        document.getElementById('basicBlank6').addEventListener('input', (e) => {
+            previewSqrtExpression(e.target.value, document.getElementById('basicBlank6Preview'));
+        });
+
+        document.getElementById('blank6').addEventListener('input', (e) => {
+            previewSqrtExpression(e.target.value, document.getElementById('blank6Preview'));
+        });
+
+        // Redraw triangle when dark mode changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (currentQuestion) {
+                const { a, b, c, unknown } = currentQuestion;
+
+                // Recreate display values
+                let displayA, displayB, displayC;
+                if (unknown === 'c') {
+                    displayA = Math.round(a);
+                    displayB = Math.round(b);
+                    displayC = '?';
+                } else if (unknown === 'a') {
+                    displayA = '?';
+                    displayB = Math.round(b);
+                    displayC = Math.round(c);
+                } else {
+                    displayA = Math.round(a);
+                    displayB = '?';
+                    displayC = Math.round(c);
+                }
+
+                drawTriangle(displayA, displayB, displayC, unknown);
+            }
+
+            // Redraw coordinate plane if in that mode
+            if (currentCoordinateQuestion && !coordinateSection.classList.contains('hidden')) {
+                const { x1, y1, x2, y2 } = currentCoordinateQuestion;
+                drawCoordinatePlane(x1, y1, x2, y2, true);
+            }
+        });
+
+        // Initialize first question
+        updateQuestion();
+    </script>
+</body>
+</html>
